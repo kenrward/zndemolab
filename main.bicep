@@ -53,25 +53,6 @@ resource labDC 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' = {
     labSubnetName: labSubnetName
     size: vmSize
     allowClaim: false
-    artifacts: [
-      {
-        artifactTitle: 'windows-CreateDomain'
-        parameters: [
-          {
-            name: 'DomainName'
-            value: domainName
-          }
-          {
-            name: 'DomainFQDN'
-            value: domainFQDN
-          }
-          {
-            name: 'SafeModePW'
-            value: password
-          }
-        ]
-      }
-    ]
     galleryImageReference: {
       offer: 'WindowsServer'
       publisher: 'MicrosoftWindowsServer'
