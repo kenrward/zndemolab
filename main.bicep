@@ -23,9 +23,9 @@ param domainFQDN string
 @secure()
 param password string
 
-var labSubnetName = '${labVirtualNetworkName}Subnet'
+var labSubnetName = '${labVirtualNetworkName}subnet'
 var labVirtualNetworkId = labVirtualNetwork.id
-var labVirtualNetworkName = 'Dtl${labName}'
+var labVirtualNetworkName = 'dtl${labName}'
 var dcName = '${dnsPrefix}dc01'
 var tsName = '${dnsPrefix}trust01'
 var srvName = '${dnsPrefix}srv01'
@@ -55,10 +55,7 @@ resource labDC 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' = {
     allowClaim: false
     artifacts: [
       {
-        artifactId: 'create domain'
         artifactTitle: 'windows-CreateDomain'
-        deploymentStatusMessage: 'string'
-        installTime: 'string'
         parameters: [
           {
             name: 'DomainName'
@@ -79,69 +76,6 @@ resource labDC 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' = {
       offer: 'WindowsServer'
       publisher: 'MicrosoftWindowsServer'
       sku: '2022-datacenter-azure-edition'
-      osType: 'Windows'
-      version: 'latest'
-    }
-  }
-}
-
-resource labTS 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' = {
-  parent: lab
-  name: tsName
-  location: location
-  properties: {
-    userName: userName
-    password: password
-    labVirtualNetworkId: labVirtualNetworkId
-    labSubnetName: labSubnetName
-    size: vmSize
-    allowClaim: false
-    galleryImageReference: {
-      offer: 'WindowsServer'
-      publisher: 'MicrosoftWindowsServer'
-      sku: '2022-datacenter-azure-edition'
-      osType: 'Windows'
-      version: 'latest'
-    }
-  }
-}
-
-resource labSrv 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' = {
-  parent: lab
-  name: srvName
-  location: location
-  properties: {
-    userName: userName
-    password: password
-    labVirtualNetworkId: labVirtualNetworkId
-    labSubnetName: labSubnetName
-    size: vmSize
-    allowClaim: false
-    galleryImageReference: {
-      offer: 'WindowsServer'
-      publisher: 'MicrosoftWindowsServer'
-      sku: '2022-datacenter-azure-edition'
-      osType: 'Windows'
-      version: 'latest'
-    }
-  }
-}
-
-resource labClient 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' = {
-  parent: lab
-  name: clientName
-  location: location
-  properties: {
-    userName: userName
-    password: password
-    labVirtualNetworkId: labVirtualNetworkId
-    labSubnetName: labSubnetName
-    size: vmSize
-    allowClaim: false
-    galleryImageReference: {
-      offer: 'windowsplustools'
-      publisher: 'microsoftvisualstudio'
-      sku: 'base-win11-gen2'
       osType: 'Windows'
       version: 'latest'
     }
