@@ -13,6 +13,12 @@ param vmSize string = 'Standard_B2'
 @description('The username for the local account that will be created on the new vm.')
 param userName string
 
+@description('Domain name for the new domain.')
+param domainName string
+
+@description('Domain FQDN name for the new domain.')
+param domainFQDN string
+
 @description('The password for the local account that will be created on the new vm.')
 @secure()
 param password string
@@ -47,10 +53,32 @@ resource labDC 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' = {
     labSubnetName: labSubnetName
     size: vmSize
     allowClaim: false
+    artifacts: [
+      {
+        artifactId: 'create domain'
+        artifactTitle: 'windows-CreateDomain'
+        deploymentStatusMessage: 'string'
+        installTime: 'string'
+        parameters: [
+          {
+            name: 'DomainName'
+            value: domainName
+          }
+          {
+            name: 'DomainFQDN'
+            value: domainFQDN
+          }
+          {
+            name: 'SafeModePW'
+            value: password
+          }
+        ]
+      }
+    ]
     galleryImageReference: {
       offer: 'WindowsServer'
       publisher: 'MicrosoftWindowsServer'
-      sku: '2019-Datacenter'
+      sku: '2022-datacenter-azure-edition'
       osType: 'Windows'
       version: 'latest'
     }
@@ -71,7 +99,7 @@ resource labTS 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' = {
     galleryImageReference: {
       offer: 'WindowsServer'
       publisher: 'MicrosoftWindowsServer'
-      sku: '2019-Datacenter'
+      sku: '2022-datacenter-azure-edition'
       osType: 'Windows'
       version: 'latest'
     }
@@ -92,7 +120,7 @@ resource labSrv 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' = {
     galleryImageReference: {
       offer: 'WindowsServer'
       publisher: 'MicrosoftWindowsServer'
-      sku: '2019-Datacenter'
+      sku: '2022-datacenter-azure-edition'
       osType: 'Windows'
       version: 'latest'
     }
@@ -111,9 +139,9 @@ resource labClient 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' = {
     size: vmSize
     allowClaim: false
     galleryImageReference: {
-      offer: 'WindowsServer'
-      publisher: 'MicrosoftWindowsServer'
-      sku: '2019-Datacenter'
+      offer: 'windowsplustools'
+      publisher: 'microsoftvisualstudio'
+      sku: 'base-win11-gen2'
       osType: 'Windows'
       version: 'latest'
     }
