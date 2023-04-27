@@ -23,7 +23,7 @@ param domainFQDN string
 param domainAdmin string
 
 @description('Domain OU Path.')
-param DomainOUPath string
+param DomainOUPath string = ''
 
 @description('The password for the local account that will be created on the new vm.')
 @secure()
