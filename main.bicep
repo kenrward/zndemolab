@@ -91,14 +91,29 @@ resource labDC 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' = {
 }
 resource labVirtualNetworkUpdate 'Microsoft.Network/virtualNetworks@2022-07-01' = {
   name: labVirtualNetworkName
+  location: location
   properties: {
+    addressSpace: {
+      addressPrefixes: [
+        '10.0.0.0/20'
+      ]
+    }
     dhcpOptions: {
       dnsServers: [
         '10.0.0.4 , 8.8.8.8'
       ]
     }
+    subnets: [
+      {
+        name: labSubnetName
+        properties: {
+          addressPrefix: '10.0.0.0/20'
+        }
+      }
+    ]
   }
 }
+
 
 resource labTS 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' = {
   parent: lab
