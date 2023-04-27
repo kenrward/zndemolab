@@ -70,6 +70,9 @@ resource labVirtualNetworkUpdate 'Microsoft.Network/virtualNetworks@2022-07-01' 
       }
     ]
   }
+  dependsOn: [
+    labVirtualNetwork
+  ]
 }
 resource labDC 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' = {
   parent: lab
