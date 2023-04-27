@@ -19,9 +19,6 @@ param domainName string
 @description('Domain FQDN name for the new domain.')
 param domainFQDN string
 
-@description('Domain Admin name for the new domain.')
-param domainAdmin string
-
 @description('Domain OU Path.')
 param DomainOUPath string = ''
 
@@ -36,6 +33,7 @@ var dcName = '${dnsPrefix}dc01'
 var tsName = '${dnsPrefix}trust01'
 var srvName = '${dnsPrefix}srv01'
 var clientName = '${dnsPrefix}client01'
+var domainAdmin = '${domainName}\\${userName}'
 
 
 resource lab 'Microsoft.DevTestLab/labs@2018-09-15' = {
