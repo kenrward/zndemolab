@@ -100,7 +100,7 @@ resource labVirtualNetworkUpdate 'Microsoft.Network/virtualNetworks@2022-07-01' 
     }
     dhcpOptions: {
       dnsServers: [
-        '10.0.0.4 , 8.8.8.8'
+        '10.0.0.4' , '8.8.8.8'
       ]
     }
     subnets: [
