@@ -39,6 +39,48 @@ var domainAdmin = '${domainName}\\${userName}'
 resource lab 'Microsoft.DevTestLab/labs@2018-09-15' = {
   name: labName
   location: location
+    resource labDC 'virtualmachines' = {
+      name: dcName
+      location: location
+      properties: {
+        userName: userName
+        password: password
+        labVirtualNetworkId: labVirtualNetworkId
+        labSubnetName: labSubnetName
+        networkInterface: {
+          privateIpAddress: '10.0.0.4'
+          }
+        artifacts: [
+          {
+            artifactId: resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', labName, 'public repo', 'windows-CreateDomain')
+            artifactTitle: 'windows-CreateDomain'
+            parameters: [
+              {
+                name: 'DomainName'
+                value: domainName
+              }
+              {
+                name: 'DomainFQDN'
+                value: domainFQDN
+              }
+              {
+                name: 'SafeModePW'
+                value: password
+              }
+            ]
+          }
+        ]
+        size: vmSize
+        allowClaim: false
+        galleryImageReference: {
+          offer: 'WindowsServer'
+          publisher: 'MicrosoftWindowsServer'
+          sku: '2022-datacenter-azure-edition'
+          osType: 'Windows'
+          version: 'latest'
+        }
+      }
+    }
 }
 
 resource labVirtualNetwork 'Microsoft.DevTestLab/labs/virtualnetworks@2018-09-15' = {
@@ -46,49 +88,7 @@ resource labVirtualNetwork 'Microsoft.DevTestLab/labs/virtualnetworks@2018-09-15
   name: labVirtualNetworkName
 }
 
-resource labDC 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' = {
-  parent: lab
-  name: dcName
-  location: location
-  properties: {
-    userName: userName
-    password: password
-    labVirtualNetworkId: labVirtualNetworkId
-    labSubnetName: labSubnetName
-    networkInterface: {
-      privateIpAddress: '10.0.0.4'
-      }
-    artifacts: [
-      {
-        artifactId: resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', labName, 'public repo', 'windows-CreateDomain')
-        artifactTitle: 'windows-CreateDomain'
-        parameters: [
-          {
-            name: 'DomainName'
-            value: domainName
-          }
-          {
-            name: 'DomainFQDN'
-            value: domainFQDN
-          }
-          {
-            name: 'SafeModePW'
-            value: password
-          }
-        ]
-      }
-    ]
-    size: vmSize
-    allowClaim: false
-    galleryImageReference: {
-      offer: 'WindowsServer'
-      publisher: 'MicrosoftWindowsServer'
-      sku: '2022-datacenter-azure-edition'
-      osType: 'Windows'
-      version: 'latest'
-    }
-  }
-}
+
 resource labVirtualNetworkUpdate 'Microsoft.Network/virtualNetworks@2022-07-01' = {
   name: labVirtualNetworkName
   location: location
