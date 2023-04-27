@@ -55,6 +55,9 @@ resource labDC 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' = {
     password: password
     labVirtualNetworkId: labVirtualNetworkId
     labSubnetName: labSubnetName
+    networkInterface: {
+      privateIpAddress: '10.0.0.4'
+      }
     artifacts: [
       {
         artifactId: resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', labName, 'public repo', 'windows-CreateDomain')
@@ -86,10 +89,65 @@ resource labDC 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' = {
     }
   }
 }
+resource labVirtualNetworkUpdate 'Microsoft.Network/virtualNetworks@2022-07-01' = {
+  name: labVirtualNetworkName
+  properties: {
+    dhcpOptions: {
+      dnsServers: [
+        '10.0.0.4 , 8.8.8.8'
+      ]
+    }
+  }
+}
 
 resource labTS 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' = {
   parent: lab
   name: tsName
+  location: location
+  properties: {
+    userName: userName
+    password: password
+    labVirtualNetworkId: labVirtualNetworkId
+    labSubnetName: labSubnetName
+    artifacts: [
+      {
+        artifactId: resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', labName, 'public repo', 'windows-domain-join-new')
+        artifactTitle: 'windows-domain-join-new'
+        parameters: [
+          {
+            name: 'domainAdminUsername'
+            value: domainAdmin
+          }
+          {
+            name: 'domainToJoin'
+            value: domainFQDN
+          }
+          {
+            name: 'domainAdminPassword'
+            value: password
+          }
+          {
+            name: 'ouPath'
+            value: DomainOUPath
+          }
+        ]
+      }
+    ]
+    size: vmSize
+    allowClaim: false
+    galleryImageReference: {
+      offer: 'WindowsServer'
+      publisher: 'MicrosoftWindowsServer'
+      sku: '2022-datacenter-azure-edition'
+      osType: 'Windows'
+      version: 'latest'
+    }
+  }
+}
+
+resource labSrv 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' = {
+  parent: lab
+  name: srvName
   location: location
   properties: {
     userName: userName
