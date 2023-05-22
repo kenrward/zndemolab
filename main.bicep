@@ -29,10 +29,10 @@ param password string
 var labSubnetName = '${labVirtualNetworkName}subnet'
 var labVirtualNetworkId = labVirtualNetwork.id
 var labVirtualNetworkName = 'dtl${labName}'
-var dcName = '${dnsPrefix}dc01'
-var tsName = '${dnsPrefix}trust01'
-var srvName = '${dnsPrefix}srv01'
-var clientName = '${dnsPrefix}client01'
+var dcName = '${dnsPrefix}-dc01'
+var tsName = '${dnsPrefix}-ts01'
+var srvName = '${dnsPrefix}-srv01'
+var clientName = '${dnsPrefix}-cl01'
 var domainAdmin = '${domainName}\\${userName}'
 
 
@@ -74,22 +74,6 @@ resource labVirtualNetworkUpdate 'Microsoft.Network/virtualNetworks@2022-07-01' 
     labVirtualNetwork
   ]
 }
-
-resource adminUser 'Microsoft.DevTestLab/labs/users@2018-09-15' = {
-  name: userName
-  location: location
-  parent: lab
-}
-
-resource adminSecret 'Microsoft.DevTestLab/labs/users/secrets@2018-09-15' = {
-  name: 'rootPwd'
-  location: location
-  parent: adminUser
-  properties: {
-    value: password
-  }
-}
-
 resource labDC 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' = {
   parent: lab
   name: dcName
@@ -261,29 +245,6 @@ resource labClient 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' = {
             name: 'ouPath'
             value: DomainOUPath
           }
-        ]
-      }
-      {
-        artifactId: resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', labName, 'public repo', 'windows-chrome')
-        artifactTitle: 'windows-chrome'
-      }
-      {
-        artifactId: resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', labName, 'public repo', 'windows-run-powershell')
-        artifactTitle: 'windows-domain-join-new'
-        parameters: [
-          {
-            name: 'scriptFileUris'
-            value: './artifact.ps1'
-          }
-          {
-            name: 'scriptToRun'
-            value: domainFQDN
-          }
-          {
-            name: 'scriptArguments'
-            value: password
-          }
-
         ]
       }
     ]
