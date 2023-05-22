@@ -39,9 +39,6 @@ var domainAdmin = '${domainName}\\${userName}'
 resource lab 'Microsoft.DevTestLab/labs@2018-09-15' = {
   name: labName
   location: location
-  properties:{
-    vmCreationResourceGroupId: resourceGroup().id
-  }
 }
 
 resource labVirtualNetwork 'Microsoft.DevTestLab/labs/virtualnetworks@2018-09-15' = {
