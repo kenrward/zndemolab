@@ -8,7 +8,7 @@ param location string = resourceGroup().location
 param dnsPrefix string
 
 @description('The size of the vm to be created.')
-param vmSize string = 'Standard_B2ms'
+param vmSize string = 'Standard_D2a_v4'
 
 @description('The username for the local account that will be created on the new vm.')
 param userName string
@@ -27,8 +27,11 @@ param DomainOUPath string = ''
 param password string
 
 var labSubnetName = '${labVirtualNetworkName}subnet'
+var bastSubnetName = 'AzureBastionSubnet'
 var labVirtualNetworkId = labVirtualNetwork.id
 var labVirtualNetworkName = 'dtl${labName}'
+var publicIpName = '${labName}pip'
+var bastionHostName = '${dnsPrefix}-bst'
 var dcName = '${dnsPrefix}-dc01'
 var tsName = '${dnsPrefix}-ts01'
 var srvName = '${dnsPrefix}-srv01'
@@ -60,6 +63,38 @@ resource adminSecret 'Microsoft.DevTestLab/labs/users/secrets@2018-09-15' = {
     value: password
   }
 }
+
+resource publicIpAddressForBastion 'Microsoft.Network/publicIPAddresses@2022-01-01' = {
+  name: publicIpName
+  location: location
+  sku: {
+    name: 'Standard'
+  }
+  properties: {
+    publicIPAllocationMethod: 'Static'
+  }
+}
+
+resource bastionHost 'Microsoft.Network/bastionHosts@2022-01-01' = {
+  name: bastionHostName
+  location: location
+  properties: {
+    ipConfigurations: [
+      {
+        name: 'IpConf'
+        properties: {
+          subnet: {
+            id: labVirtualNetworkUpdate::bastionSubnet.id
+          }
+          publicIPAddress: {
+            id: publicIpAddressForBastion.id
+          }
+        }
+      }
+    ]
+  }
+}
+
 
 resource adminEnv 'Microsoft.DevTestLab/labs/users/environments@2018-09-15' = {
   name: 'labenv'
@@ -102,8 +137,18 @@ resource labVirtualNetworkUpdate 'Microsoft.Network/virtualNetworks@2022-07-01' 
           addressPrefix: '10.0.0.0/20'
         }
       }
+      {
+        name: bastSubnetName
+        properties: {
+          addressPrefix: '10.0.0.0/20'
+        }
+      }
     ]
   }
+  resource bastionSubnet 'subnets' existing = {
+    name: bastSubnetName
+  }
+  
   dependsOn: [
     labVirtualNetwork
   ]
