@@ -46,6 +46,40 @@ resource labVirtualNetwork 'Microsoft.DevTestLab/labs/virtualnetworks@2018-09-15
   name: labVirtualNetworkName
 }
 
+resource adminUser 'Microsoft.DevTestLab/labs/users@2018-09-15' = {
+  name: userName
+  location: location
+  parent: lab
+}
+
+resource adminSecret 'Microsoft.DevTestLab/labs/users/secrets@2018-09-15' = {
+  name: 'rootPwd'
+  location: location
+  parent: adminUser
+  properties: {
+    value: password
+  }
+}
+
+resource adminEnv 'Microsoft.DevTestLab/labs/users/environments@2018-09-15' = {
+  name: 'labenv'
+  location: location
+  parent: adminUser
+  properties: {
+    deploymentProperties: {
+      parameters: [
+        {
+          name: 'adminUsername'
+          value: userName
+        }
+        {
+          name: 'adminPassword'
+          value: password
+        }
+      ]
+    }
+  }
+}
 
 resource labVirtualNetworkUpdate 'Microsoft.Network/virtualNetworks@2022-07-01' = {
   name: labVirtualNetworkName
