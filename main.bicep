@@ -123,12 +123,12 @@ resource labVirtualNetworkUpdate 'Microsoft.Network/virtualNetworks@2022-07-01' 
   properties: {
     addressSpace: {
       addressPrefixes: [
-        '10.0.0.0/20'
+        '10.0.0.0/16'
       ]
     }
     dhcpOptions: {
       dnsServers: [
-        '10.0.0.4' , '8.8.8.8'
+        '10.0.0.4' 
       ]
     }
     subnets: [
@@ -141,7 +141,7 @@ resource labVirtualNetworkUpdate 'Microsoft.Network/virtualNetworks@2022-07-01' 
       {
         name: bastSubnetName
         properties: {
-          addressPrefix: '10.0.0.0/20'
+          addressPrefix: '10.0.16.0/20'
         }
       }
     ]
