@@ -34,6 +34,7 @@ var publicIpName = '${labName}pip'
 var bastionHostName = '${dnsPrefix}-bst'
 var dcName = '${dnsPrefix}-dc01'
 var tsName = '${dnsPrefix}-ts01'
+var csName = '${dnsPrefix}-cs01'
 var srvName = '${dnsPrefix}-srv01'
 var clientName = '${dnsPrefix}-cl01'
 var domainAdmin = '${domainName}\\${userName}'
@@ -243,6 +244,27 @@ resource labTS 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' = {
   dependsOn: [
     labDC
   ]
+}
+
+resource labCS 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' = {
+  parent: lab
+  name: csName
+  location: location
+  properties: {
+    userName: userName
+    password: password
+    labVirtualNetworkId: labVirtualNetworkId
+    labSubnetName: labSubnetName
+    size: vmSize
+    allowClaim: false
+    galleryImageReference: {
+      offer: '0001-com-ubuntu-server-lunar'
+      publisher: 'canonical'
+      sku: '23_04'
+      osType: 'Linux'
+      version: 'latest'
+    }
+  }
 }
 
 resource labSrv 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' = {
