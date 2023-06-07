@@ -25,6 +25,7 @@ param domainControllerName string = 'DC01'
 @description('Name for the workstation virtual machine.')
 param workstationName string = 'WS01'
 
+
 @description('Size for both the domain controller and workstation virtual machines.')
 @allowed([
   'Standard_DS1_v2'
@@ -258,3 +259,55 @@ module dbServer 'modules/vm.bicep' = {
   }
 }
 
+// Deploy the Trust Server once the virtual network's primary DNS server has been updated to the domain controller
+module trustServer 'modules/vm.bicep' = {
+  name: 'trustServer'
+  dependsOn: [
+    virtualNetworkDNS
+  ]
+  params: {
+    location: location
+    subnetId: virtualNetwork.outputs.subnetId
+    vmName: 'TS01'
+    vmSize: virtualMachineSize
+    vmPublisher: 'MicrosoftWindowsServer'
+    vmOffer: 'WindowsServer'
+    vmSku: '2019-Datacenter'
+    vmVersion: 'latest'
+    vmStorageAccountType: 'StandardSSD_LRS'
+    adminUsername: adminUsername
+    adminPassword: adminPassword
+  }
+}
+
+// Use PowerShell DSC to join the workstation to the domain
+resource tsConfiguration 'Microsoft.Compute/virtualMachines/extensions@2021-11-01' = {
+  name: '${trustServer}/Microsoft.Powershell.DSC'
+  dependsOn: [
+    trustServer
+  ]
+  location: location
+  properties: {
+    publisher: 'Microsoft.Powershell'
+    type: 'DSC'
+    typeHandlerVersion: '2.77'
+    autoUpgradeMinorVersion: true
+    settings: {
+      ModulesUrl: 'https://github.com/joshua-a-lucas/BlueTeamLab/raw/main/scripts/Join-Domain.zip'
+      ConfigurationFunction: 'Join-Domain.ps1\\Join-Domain'
+      Properties: {
+        domainFQDN: domainFQDN
+        computerName: 'TS01'
+        adminCredential: {
+          UserName: adminUsername
+          Password: 'PrivateSettingsRef:adminPassword'
+        }
+      }
+    }
+    protectedSettings: {
+      Items: {
+          adminPassword: adminPassword
+      }
+    }
+  }
+}
