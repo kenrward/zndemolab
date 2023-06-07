@@ -345,3 +345,28 @@ module webServer 'modules/vm.bicep' = {
     adminPassword: adminPassword
   }
 }
+
+//***************************************************************************************************************
+// DB SERVER
+//
+// Deploy once the virtual network's primary DNS server has been updated to the domain controller
+module dbServer 'modules/vm.bicep' = {
+  name: 'dbServer'
+  dependsOn: [
+    virtualNetworkDNS
+  ]
+  params: {
+    location: location
+    subnetId: virtualNetwork.outputs.subnetId
+    vmName: 'DB01'
+    vmSize: virtualMachineSize
+    vmPublisher: 'canonical'
+    vmOffer: '0001-com-ubuntu-server-lunar'
+    vmSku: '23_04'
+    vmVersion: 'latest'
+    vmStorageAccountType: 'StandardSSD_LRS'
+    adminUsername: adminUsername
+    adminPassword: adminPassword
+  }
+}
+
