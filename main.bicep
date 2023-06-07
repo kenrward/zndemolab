@@ -25,6 +25,12 @@ param domainControllerName string = 'DC01'
 @description('Name for the workstation virtual machine.')
 param workstationName string = 'WS01'
 
+@description('Name for the domain controller virtual machine.')
+param trustServerName string = 'TS01'
+
+@description('Name for the workstation virtual machine.')
+param rdpServerName string = 'RDP01'
+
 
 @description('Size for both the domain controller and workstation virtual machines.')
 @allowed([
@@ -268,7 +274,7 @@ module trustServer 'modules/vm.bicep' = {
   params: {
     location: location
     subnetId: virtualNetwork.outputs.subnetId
-    vmName: 'TS01'
+    vmName: trustServerName
     vmSize: virtualMachineSize
     vmPublisher: 'MicrosoftWindowsServer'
     vmOffer: 'WindowsServer'
@@ -282,7 +288,7 @@ module trustServer 'modules/vm.bicep' = {
 
 // Use PowerShell DSC to join the workstation to the domain
 resource tsConfiguration 'Microsoft.Compute/virtualMachines/extensions@2021-11-01' = {
-  name: '${trustServer}/Microsoft.Powershell.DSC'
+  name: '${trustServerName}/Microsoft.Powershell.DSC'
   dependsOn: [
     trustServer
   ]
@@ -297,7 +303,60 @@ resource tsConfiguration 'Microsoft.Compute/virtualMachines/extensions@2021-11-0
       ConfigurationFunction: 'Join-Domain.ps1\\Join-Domain'
       Properties: {
         domainFQDN: domainFQDN
-        computerName: 'TS01'
+        computerName: trustServerName
+        adminCredential: {
+          UserName: adminUsername
+          Password: 'PrivateSettingsRef:adminPassword'
+        }
+      }
+    }
+    protectedSettings: {
+      Items: {
+          adminPassword: adminPassword
+      }
+    }
+  }
+}
+
+// Deploy the Trust Server once the virtual network's primary DNS server has been updated to the domain controller
+module rdpServer 'modules/vm.bicep' = {
+  name: 'rdpServer'
+  dependsOn: [
+    virtualNetworkDNS
+  ]
+  params: {
+    location: location
+    subnetId: virtualNetwork.outputs.subnetId
+    vmName: trustServerName
+    vmSize: virtualMachineSize
+    vmPublisher: 'MicrosoftWindowsServer'
+    vmOffer: 'WindowsServer'
+    vmSku: '2019-Datacenter'
+    vmVersion: 'latest'
+    vmStorageAccountType: 'StandardSSD_LRS'
+    adminUsername: adminUsername
+    adminPassword: adminPassword
+  }
+}
+
+// Use PowerShell DSC to join the workstation to the domain
+resource rdpConfiguration 'Microsoft.Compute/virtualMachines/extensions@2021-11-01' = {
+  name: '${rdpServerName}/Microsoft.Powershell.DSC'
+  dependsOn: [
+    rdpServer
+  ]
+  location: location
+  properties: {
+    publisher: 'Microsoft.Powershell'
+    type: 'DSC'
+    typeHandlerVersion: '2.77'
+    autoUpgradeMinorVersion: true
+    settings: {
+      ModulesUrl: 'https://github.com/joshua-a-lucas/BlueTeamLab/raw/main/scripts/Join-Domain.zip'
+      ConfigurationFunction: 'Join-Domain.ps1\\Join-Domain'
+      Properties: {
+        domainFQDN: domainFQDN
+        computerName: rdpServerName
         adminCredential: {
           UserName: adminUsername
           Password: 'PrivateSettingsRef:adminPassword'
