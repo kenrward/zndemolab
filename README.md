@@ -7,8 +7,16 @@ This script will deploy a Dev Test Lab with 4 Servers.  The Domain Controller is
 ## Deployment
 To run this, first create a Resource Group
 
-`az group create --name ZN-Demo-Lab --location eastus`
+```
+$rg = "ZN-PARTNER-LAB"
+az group create -n $rg -l eastus
+```
 
 Then deploy the bicep file
 
-`az deployment group create --resource-group ZN-Demo-Lab --template-file main.bicep --parameters labName=zn-demo dnsPrefix=zndemo userName=ken domainName=zndemo domainFQDN=zndemo.com`
+```
+az deployment group create -g $rg  `
+    --template-file main.bicep `
+    --parameters adminUsername=znadmin `
+    domainFQDN=zxdemo.local`
+```
