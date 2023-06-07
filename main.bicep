@@ -318,7 +318,7 @@ resource tsConfiguration 'Microsoft.Compute/virtualMachines/extensions@2021-11-0
   }
 }
 
-// Deploy the Trust Server once the virtual network's primary DNS server has been updated to the domain controller
+// Deploy the RDP Server once the virtual network's primary DNS server has been updated to the domain controller
 module rdpServer 'modules/vm.bicep' = {
   name: 'rdpServer'
   dependsOn: [
@@ -327,7 +327,7 @@ module rdpServer 'modules/vm.bicep' = {
   params: {
     location: location
     subnetId: virtualNetwork.outputs.subnetId
-    vmName: trustServerName
+    vmName: rdpServerName
     vmSize: virtualMachineSize
     vmPublisher: 'MicrosoftWindowsServer'
     vmOffer: 'WindowsServer'
