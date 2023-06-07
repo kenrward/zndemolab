@@ -49,6 +49,11 @@ param adminUsername string = 'ZNTeamLab'
 @secure()
 param adminPassword string
 
+var dcName = 'znlab-dc01'
+var tsName = 'znlab-ts01'
+var csName = 'znlab-cs01'
+var srvName = 'znlab-srv01'
+
 // Deploy the virtual network
 module virtualNetwork 'modules/network.bicep' = {
   name: 'virtualNetwork'
@@ -129,3 +134,113 @@ module virtualNetworkDNS 'modules/network.bicep' = {
     dnsServerIPAddress: domainController.outputs.privateIpAddress
   }
 }
+
+// Deploy the workstation once the virtual network's primary DNS server has been updated to the domain controller
+module workstation 'modules/vm.bicep' = {
+  name: 'workstation'
+  dependsOn: [
+    virtualNetworkDNS
+  ]
+  params: {
+    location: location
+    subnetId: virtualNetwork.outputs.subnetId
+    vmName: workstationName
+    vmSize: virtualMachineSize
+    vmPublisher: 'MicrosoftWindowsDesktop'
+    vmOffer: 'Windows-10'
+    vmSku: 'win10-21h2-pro'
+    vmVersion: 'latest'
+    vmStorageAccountType: 'StandardSSD_LRS'
+    adminUsername: adminUsername
+    adminPassword: adminPassword
+  }
+}
+
+// Use PowerShell DSC to join the workstation to the domain
+resource workstationConfiguration 'Microsoft.Compute/virtualMachines/extensions@2021-11-01' = {
+  name: '${workstationName}/Microsoft.Powershell.DSC'
+  dependsOn: [
+    workstation
+  ]
+  location: location
+  properties: {
+    publisher: 'Microsoft.Powershell'
+    type: 'DSC'
+    typeHandlerVersion: '2.77'
+    autoUpgradeMinorVersion: true
+    settings: {
+      ModulesUrl: 'https://github.com/joshua-a-lucas/BlueTeamLab/raw/main/scripts/Join-Domain.zip'
+      ConfigurationFunction: 'Join-Domain.ps1\\Join-Domain'
+      Properties: {
+        domainFQDN: domainFQDN
+        computerName: workstationName
+        adminCredential: {
+          UserName: adminUsername
+          Password: 'PrivateSettingsRef:adminPassword'
+        }
+      }
+    }
+    protectedSettings: {
+      Items: {
+          adminPassword: adminPassword
+      }
+    }
+  }
+}
+
+
+// Deploy the workstation once the virtual network's primary DNS server has been updated to the domain controller
+module trustServer 'modules/vm.bicep' = {
+  name: 'trustserver'
+  dependsOn: [
+    virtualNetworkDNS
+  ]
+  params: {
+    location: location
+    subnetId: virtualNetwork.outputs.subnetId
+    vmName: tsName
+    vmSize: virtualMachineSize
+    vmPublisher: 'MicrosoftWindowsServer'
+    vmOffer: 'WindowsServer'
+    vmSku: '2019-Datacenter'
+    vmVersion: 'latest'
+    vmStorageAccountType: 'StandardSSD_LRS'
+    adminUsername: adminUsername
+    adminPassword: adminPassword
+  }
+}
+
+// Use PowerShell DSC to join the workstation to the domain
+resource trustServerConfiguration 'Microsoft.Compute/virtualMachines/extensions@2021-11-01' = {
+  name: '${trustServer}/Microsoft.Powershell.DSC'
+  dependsOn: [
+    trustServer
+  ]
+  location: location
+  properties: {
+    publisher: 'Microsoft.Powershell'
+    type: 'DSC'
+    typeHandlerVersion: '2.77'
+    autoUpgradeMinorVersion: true
+    settings: {
+      ModulesUrl: 'https://github.com/joshua-a-lucas/BlueTeamLab/raw/main/scripts/Join-Domain.zip'
+      ConfigurationFunction: 'Join-Domain.ps1\\Join-Domain'
+      Properties: {
+        domainFQDN: domainFQDN
+        computerName: tsName
+        adminCredential: {
+          UserName: adminUsername
+          Password: 'PrivateSettingsRef:adminPassword'
+        }
+      }
+    }
+    protectedSettings: {
+      Items: {
+          adminPassword: adminPassword
+      }
+    }
+  }
+}
+
+
+

@@ -1,8 +1,7 @@
-$rg = "pwZero04"
-az group create --name $rg --location westus  
+$rg = "dscLab01"
+az group create --name $rg --location eastus  
 
 az deployment group create -g $rg  `
-    --template-file dc.bicep `
-    --parameters dnsPrefix=zxdemo `
-        adminUsername=znadmin `
-        domainName=zxdemo.local
+    --template-file main.bicep `
+    --parameters adminUsername=znadmin `
+        domainFQDN=zxdemo.local
