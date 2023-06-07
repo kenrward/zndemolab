@@ -39,6 +39,14 @@ param rdpServerName string = 'RDP01'
 ])
 param virtualMachineSize string = 'Standard_DS1_v2'
 
+@description('Size for both the domain controller and workstation virtual machines.')
+@allowed([
+  'Standard_B1s'
+  'Standard_B2ms'
+  'Standard_B1ls2'
+])
+param virtualMachineSizeSm string = 'Standard_B1ls2'
+
 // Domain parameters
 @description('FQDN for the Active Directory domain (e.g. contoso.com).')
 @minLength(3)
@@ -206,7 +214,7 @@ module connectServer 'modules/vm.bicep' = {
     location: location
     subnetId: virtualNetwork.outputs.subnetId
     vmName: 'CS01'
-    vmSize: virtualMachineSize
+    vmSize: virtualMachineSizeSm
     vmPublisher: 'canonical'
     vmOffer: '0001-com-ubuntu-server-lunar'
     vmSku: '23_04'
@@ -230,7 +238,7 @@ module webServer 'modules/vm.bicep' = {
     location: location
     subnetId: virtualNetwork.outputs.subnetId
     vmName: 'WEB01'
-    vmSize: virtualMachineSize
+    vmSize: virtualMachineSizeSm
     vmPublisher: 'canonical'
     vmOffer: '0001-com-ubuntu-server-lunar'
     vmSku: '23_04'
