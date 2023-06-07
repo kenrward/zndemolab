@@ -49,11 +49,7 @@ param adminUsername string = 'ZNTeamLab'
 @secure()
 param adminPassword string
 
-var dcName = 'znlab-dc01'
-var tsName = 'znlab-ts01'
-var csName = 'znlab-cs01'
-var srvName = 'znlab-srv01'
-var rdpName = 'znlab-rdp01'
+
 
 // Deploy the virtual network
 module virtualNetwork 'modules/network.bicep' = {
@@ -201,7 +197,7 @@ module trustServer 'modules/vm.bicep' = {
   params: {
     location: location
     subnetId: virtualNetwork.outputs.subnetId
-    vmName: tsName
+    vmName: 'TS01'
     vmSize: virtualMachineSize
     vmPublisher: 'MicrosoftWindowsServer'
     vmOffer: 'WindowsServer'
@@ -230,7 +226,7 @@ resource trustServerConfiguration 'Microsoft.Compute/virtualMachines/extensions@
       ConfigurationFunction: 'Join-Domain.ps1\\Join-Domain'
       Properties: {
         domainFQDN: domainFQDN
-        computerName: tsName
+        computerName: 'TS01'
         adminCredential: {
           UserName: adminUsername
           Password: 'PrivateSettingsRef:adminPassword'
@@ -258,7 +254,7 @@ module rdpServer 'modules/vm.bicep' = {
   params: {
     location: location
     subnetId: virtualNetwork.outputs.subnetId
-    vmName: rdpName
+    vmName: 'RDP01'
     vmSize: virtualMachineSize
     vmPublisher: 'MicrosoftWindowsServer'
     vmOffer: 'WindowsServer'
@@ -287,7 +283,7 @@ resource rdpServerConfiguration 'Microsoft.Compute/virtualMachines/extensions@20
       ConfigurationFunction: 'Join-Domain.ps1\\Join-Domain'
       Properties: {
         domainFQDN: domainFQDN
-        computerName: rdpName
+        computerName: 'RDP01'
         adminCredential: {
           UserName: adminUsername
           Password: 'PrivateSettingsRef:adminPassword'
@@ -314,7 +310,7 @@ module connectServer 'modules/vm.bicep' = {
   params: {
     location: location
     subnetId: virtualNetwork.outputs.subnetId
-    vmName: csName
+    vmName: 'CS01'
     vmSize: virtualMachineSize
     vmPublisher: 'canonical'
     vmOffer: '0001-com-ubuntu-server-lunar'
@@ -326,3 +322,26 @@ module connectServer 'modules/vm.bicep' = {
   }
 }
 
+//***************************************************************************************************************
+// WEB SERVER
+//
+// Deploy once the virtual network's primary DNS server has been updated to the domain controller
+module webServer 'modules/vm.bicep' = {
+  name: 'webServer'
+  dependsOn: [
+    virtualNetworkDNS
+  ]
+  params: {
+    location: location
+    subnetId: virtualNetwork.outputs.subnetId
+    vmName: 'WEB01'
+    vmSize: virtualMachineSize
+    vmPublisher: 'canonical'
+    vmOffer: '0001-com-ubuntu-server-lunar'
+    vmSku: '23_04'
+    vmVersion: 'latest'
+    vmStorageAccountType: 'StandardSSD_LRS'
+    adminUsername: adminUsername
+    adminPassword: adminPassword
+  }
+}
