@@ -302,4 +302,27 @@ resource rdpServerConfiguration 'Microsoft.Compute/virtualMachines/extensions@20
   }
 }
 
+//***************************************************************************************************************
+// CONNECT SERVER
+//
+// Deploy once the virtual network's primary DNS server has been updated to the domain controller
+module connectServer 'modules/vm.bicep' = {
+  name: 'connectServer'
+  dependsOn: [
+    virtualNetworkDNS
+  ]
+  params: {
+    location: location
+    subnetId: virtualNetwork.outputs.subnetId
+    vmName: csName
+    vmSize: virtualMachineSize
+    vmPublisher: 'canonical'
+    vmOffer: '0001-com-ubuntu-server-lunar'
+    vmSku: '23_04'
+    vmVersion: 'latest'
+    vmStorageAccountType: 'StandardSSD_LRS'
+    adminUsername: adminUsername
+    adminPassword: adminPassword
+  }
+}
 
