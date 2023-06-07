@@ -53,6 +53,7 @@ var dcName = 'znlab-dc01'
 var tsName = 'znlab-ts01'
 var csName = 'znlab-cs01'
 var srvName = 'znlab-srv01'
+var rdpName = 'znlab-rdp01'
 
 // Deploy the virtual network
 module virtualNetwork 'modules/network.bicep' = {
@@ -188,8 +189,10 @@ resource workstationConfiguration 'Microsoft.Compute/virtualMachines/extensions@
   }
 }
 
-
-// Deploy the workstation once the virtual network's primary DNS server has been updated to the domain controller
+//***************************************************************************************************************
+// TRUST SERVER
+//
+// Deploy once the virtual network's primary DNS server has been updated to the domain controller
 module trustServer 'modules/vm.bicep' = {
   name: 'trustserver'
   dependsOn: [
@@ -242,5 +245,61 @@ resource trustServerConfiguration 'Microsoft.Compute/virtualMachines/extensions@
   }
 }
 
+
+//***************************************************************************************************************
+// RDP SERVER
+//
+// Deploy once the virtual network's primary DNS server has been updated to the domain controller
+module rdpServer 'modules/vm.bicep' = {
+  name: 'rdpserver'
+  dependsOn: [
+    virtualNetworkDNS
+  ]
+  params: {
+    location: location
+    subnetId: virtualNetwork.outputs.subnetId
+    vmName: rdpName
+    vmSize: virtualMachineSize
+    vmPublisher: 'MicrosoftWindowsServer'
+    vmOffer: 'WindowsServer'
+    vmSku: '2019-Datacenter'
+    vmVersion: 'latest'
+    vmStorageAccountType: 'StandardSSD_LRS'
+    adminUsername: adminUsername
+    adminPassword: adminPassword
+  }
+}
+
+// Use PowerShell DSC to join the workstation to the domain
+resource rdpServerConfiguration 'Microsoft.Compute/virtualMachines/extensions@2021-11-01' = {
+  name: '${rdpServer}/Microsoft.Powershell.DSC'
+  dependsOn: [
+    rdpServer
+  ]
+  location: location
+  properties: {
+    publisher: 'Microsoft.Powershell'
+    type: 'DSC'
+    typeHandlerVersion: '2.77'
+    autoUpgradeMinorVersion: true
+    settings: {
+      ModulesUrl: 'https://github.com/joshua-a-lucas/BlueTeamLab/raw/main/scripts/Join-Domain.zip'
+      ConfigurationFunction: 'Join-Domain.ps1\\Join-Domain'
+      Properties: {
+        domainFQDN: domainFQDN
+        computerName: rdpName
+        adminCredential: {
+          UserName: adminUsername
+          Password: 'PrivateSettingsRef:adminPassword'
+        }
+      }
+    }
+    protectedSettings: {
+      Items: {
+          adminPassword: adminPassword
+      }
+    }
+  }
+}
 
 
