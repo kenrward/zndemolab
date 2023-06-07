@@ -1,4 +1,4 @@
-$rg = "dscLab01"
+$rg = "ZN-PARTNER-LAB"
 az group create --name $rg --location eastus  
 
 az deployment group create -g $rg  `
