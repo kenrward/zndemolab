@@ -39,6 +39,14 @@ param rdpServerName string = 'RDP01'
 ])
 param virtualMachineSize string = 'Standard_DS1_v2'
 
+@description('Size for both the domain controller and workstation virtual machines.')
+@allowed([
+  'Standard_B1s'
+  'Standard_B2ms'
+  'Standard_B1ls2'
+])
+param virtualMachineSizeSm string = 'Standard_B1ls2'
+
 // Domain parameters
 @description('FQDN for the Active Directory domain (e.g. contoso.com).')
 @minLength(3)
@@ -56,8 +64,6 @@ param adminUsername string = 'ZNTeamLab'
 @secure()
 param adminPassword string
 
-
-
 // Deploy the virtual network
 module virtualNetwork 'modules/network.bicep' = {
   name: 'virtualNetwork'
@@ -71,8 +77,9 @@ module virtualNetwork 'modules/network.bicep' = {
   }
 }
 
-
-// Deploy the domain controller
+//**************************
+// DOMAIN CONTROLLER
+//**************************
 module domainController 'modules/vm.bicep' = {
   name: 'domainController'
   params: {
@@ -89,7 +96,6 @@ module domainController 'modules/vm.bicep' = {
     adminPassword: adminPassword
   }
 }
-
 
 // Use PowerShell DSC to deploy Active Directory Domain Services on the domain controller
 resource domainControllerConfiguration 'Microsoft.Compute/virtualMachines/extensions@2021-11-01' = {
@@ -139,7 +145,9 @@ module virtualNetworkDNS 'modules/network.bicep' = {
   }
 }
 
-// Deploy the workstation once the virtual network's primary DNS server has been updated to the domain controller
+//**************************
+// WORKSTATION
+//**************************
 module workstation 'modules/vm.bicep' = {
   name: 'workstation'
   dependsOn: [
@@ -193,10 +201,9 @@ resource workstationConfiguration 'Microsoft.Compute/virtualMachines/extensions@
 }
 
 
-//***************************************************************************************************************
+//**************************
 // CONNECT SERVER
-//
-// Deploy once the virtual network's primary DNS server has been updated to the domain controller
+//**************************
 module connectServer 'modules/vm.bicep' = {
   name: 'connectServer'
   dependsOn: [
@@ -206,7 +213,7 @@ module connectServer 'modules/vm.bicep' = {
     location: location
     subnetId: virtualNetwork.outputs.subnetId
     vmName: 'CS01'
-    vmSize: virtualMachineSize
+    vmSize: virtualMachineSizeSm
     vmPublisher: 'canonical'
     vmOffer: '0001-com-ubuntu-server-lunar'
     vmSku: '23_04'
@@ -217,10 +224,9 @@ module connectServer 'modules/vm.bicep' = {
   }
 }
 
-//***************************************************************************************************************
+//**************************
 // WEB SERVER
-//
-// Deploy once the virtual network's primary DNS server has been updated to the domain controller
+//**************************
 module webServer 'modules/vm.bicep' = {
   name: 'webServer'
   dependsOn: [
@@ -230,7 +236,7 @@ module webServer 'modules/vm.bicep' = {
     location: location
     subnetId: virtualNetwork.outputs.subnetId
     vmName: 'WEB01'
-    vmSize: virtualMachineSize
+    vmSize: virtualMachineSizeSm
     vmPublisher: 'canonical'
     vmOffer: '0001-com-ubuntu-server-lunar'
     vmSku: '23_04'
@@ -241,10 +247,9 @@ module webServer 'modules/vm.bicep' = {
   }
 }
 
-//***************************************************************************************************************
+//**************************
 // DB SERVER
-//
-// Deploy once the virtual network's primary DNS server has been updated to the domain controller
+//**************************
 module dbServer 'modules/vm.bicep' = {
   name: 'dbServer'
   dependsOn: [
@@ -265,7 +270,9 @@ module dbServer 'modules/vm.bicep' = {
   }
 }
 
-// Deploy the Trust Server once the virtual network's primary DNS server has been updated to the domain controller
+//**************************
+// TRUST SERVER
+//**************************
 module trustServer 'modules/vm.bicep' = {
   name: 'trustServer'
   dependsOn: [
@@ -286,7 +293,7 @@ module trustServer 'modules/vm.bicep' = {
   }
 }
 
-// Use PowerShell DSC to join the workstation to the domain
+// Use PowerShell DSC to join the TS to the domain
 resource tsConfiguration 'Microsoft.Compute/virtualMachines/extensions@2021-11-01' = {
   name: '${trustServerName}/Microsoft.Powershell.DSC'
   dependsOn: [
@@ -318,7 +325,9 @@ resource tsConfiguration 'Microsoft.Compute/virtualMachines/extensions@2021-11-0
   }
 }
 
-// Deploy the RDP Server once the virtual network's primary DNS server has been updated to the domain controller
+//**************************
+// RDP SERVER
+//**************************
 module rdpServer 'modules/vm.bicep' = {
   name: 'rdpServer'
   dependsOn: [
@@ -339,7 +348,7 @@ module rdpServer 'modules/vm.bicep' = {
   }
 }
 
-// Use PowerShell DSC to join the workstation to the domain
+// Use PowerShell DSC to join the RDP  to the domain
 resource rdpConfiguration 'Microsoft.Compute/virtualMachines/extensions@2021-11-01' = {
   name: '${rdpServerName}/Microsoft.Powershell.DSC'
   dependsOn: [

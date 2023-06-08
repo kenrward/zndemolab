@@ -2,7 +2,7 @@
 ## Resources
 This script will deploy a Dev Test Lab with 4 Servers.  The Domain Controller is the first server to be deployed and will create a new domain.  All other servers depend on the successful creatation of the DC.  
 
-![Lab Layout and dependencies](labImage.png "Lab Layout and dependencies")
+![Lab Layout and dependencies](labDiag.png "Lab Layout and dependencies")
 
 ## Deployment
 To run this, first create a Resource Group
