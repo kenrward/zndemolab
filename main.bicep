@@ -64,8 +64,6 @@ param adminUsername string = 'ZNTeamLab'
 @secure()
 param adminPassword string
 
-
-
 // Deploy the virtual network
 module virtualNetwork 'modules/network.bicep' = {
   name: 'virtualNetwork'
@@ -78,7 +76,6 @@ module virtualNetwork 'modules/network.bicep' = {
     allowedSourceIPAddress: allowedSourceIPAddress
   }
 }
-
 
 //**************************
 // DOMAIN CONTROLLER
@@ -99,7 +96,6 @@ module domainController 'modules/vm.bicep' = {
     adminPassword: adminPassword
   }
 }
-
 
 // Use PowerShell DSC to deploy Active Directory Domain Services on the domain controller
 resource domainControllerConfiguration 'Microsoft.Compute/virtualMachines/extensions@2021-11-01' = {
