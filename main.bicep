@@ -43,9 +43,8 @@ param virtualMachineSize string = 'Standard_DS1_v2'
 @allowed([
   'Standard_B1s'
   'Standard_B2ms'
-  'Standard_B1ls2'
 ])
-param virtualMachineSizeSm string = 'Standard_B1ls2'
+param virtualMachineSizeSm string = 'Standard_B2ms'
 
 // Domain parameters
 @description('FQDN for the Active Directory domain (e.g. contoso.com).')
