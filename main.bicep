@@ -88,7 +88,7 @@ module domainController 'modules/vm.bicep' = {
     vmSize: virtualMachineSize
     vmPublisher: 'MicrosoftWindowsServer'
     vmOffer: 'WindowsServer'
-    vmSku: '2019-Datacenter'
+    vmSku: '2022-Datacenter'
     vmVersion: 'latest'
     vmStorageAccountType: 'StandardSSD_LRS'
     adminUsername: adminUsername
@@ -284,7 +284,7 @@ module trustServer 'modules/vm.bicep' = {
     vmSize: virtualMachineSize
     vmPublisher: 'MicrosoftWindowsServer'
     vmOffer: 'WindowsServer'
-    vmSku: '2019-Datacenter'
+    vmSku: '2022-Datacenter'
     vmVersion: 'latest'
     vmStorageAccountType: 'StandardSSD_LRS'
     adminUsername: adminUsername
@@ -339,7 +339,7 @@ module rdpServer 'modules/vm.bicep' = {
     vmSize: virtualMachineSize
     vmPublisher: 'MicrosoftWindowsServer'
     vmOffer: 'WindowsServer'
-    vmSku: '2019-Datacenter'
+    vmSku: '2022-Datacenter'
     vmVersion: 'latest'
     vmStorageAccountType: 'StandardSSD_LRS'
     adminUsername: adminUsername
