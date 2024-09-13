@@ -18,5 +18,5 @@ Then deploy the bicep file
 az deployment group create -g $rg  `
     --template-file main.bicep `
     --parameters adminUsername=znadmin `
-    domainFQDN=zxdemo.local`
+    domainFQDN=zxdemo.local
 ```
