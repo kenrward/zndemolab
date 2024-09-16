@@ -26,7 +26,7 @@ param domainControllerName string = 'DC01'
 param workstationName string = 'WS01'
 
 @description('Name for the domain controller virtual machine.')
-param trustServerName string = 'TS01'
+param trustServerName string = 'ZNSEG01'
 
 @description('Name for the workstation virtual machine.')
 param rdpServerName string = 'RDP01'
